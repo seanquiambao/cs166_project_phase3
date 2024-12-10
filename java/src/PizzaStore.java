@@ -465,6 +465,7 @@ public class PizzaStore {
 		String query = "";
 		switch(readChoice()) {
 			case 1: condition = viewByTypes(esql); break;
+			case 2: condition = viewByCost(esql); break;
 			default: return; 
 		}
 
@@ -489,22 +490,22 @@ public class PizzaStore {
 	}
 
 	public static String viewByTypes(PizzaStore esql) {
-		System.out.println("1. Pizza");
+		System.out.println("1. Entree");
 		System.out.println("2. Sides");
 		System.out.println("3. Drinks");
 
 		String condition = "";
 		switch(readChoice()) {
-			case 1: condition = "Pizza"; break;
-			case 2: condition = "Side"; break;
-			default: condition = "Drink"; break;
+			case 1: condition = "entree"; break;
+			case 2: condition = "side"; break;
+			default: condition = "drink"; break;
 		}
 
 		return String.format("WHERE typeOfItem = '%s'", condition);
 	}
 	public static String viewByCost(PizzaStore esql) {
-		String cost = input("minimum cost", "numeric");	
-		return "WHERE typeOfItem = 'Pizza'";
+		String cost = input("the maximum cost (price under...)", "numeric");	
+		return String.format("WHERE price BETWEEN 0 AND %s", cost); 
 	}
 	public static void placeOrder(PizzaStore esql) {}
 	public static void viewAllOrders(PizzaStore esql) {}
@@ -513,7 +514,7 @@ public class PizzaStore {
 	public static void viewStores(PizzaStore esql) {}
 	public static void updateOrderStatus(PizzaStore esql) {}
 	public static void updateMenu(PizzaStore esql, String authorisedUser) {
-		String[] roles = {"Manager"};	
+		String[] roles = {"manager"};	
 		String query = "";
 		boolean loop = true;
 		if(!authorise(esql, authorisedUser, roles)) {
@@ -578,7 +579,7 @@ public class PizzaStore {
 	}
 
 	public static String updateUser(PizzaStore esql, String authorisedUser) {
-		String[] roles = {"Manager"};
+		String[] roles = {"manager"};
 		String user = authorisedUser;
 		boolean loop = true;
 		if(!authorise(esql, authorisedUser, roles)) {
