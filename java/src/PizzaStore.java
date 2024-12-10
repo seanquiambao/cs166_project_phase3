@@ -17,6 +17,7 @@ import java.sql.Statement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.PreparedStatement;
 import java.io.File;
 import java.io.FileReader;
 import java.io.BufferedReader;
@@ -114,13 +115,13 @@ public class PizzaStore {
 		while (rs.next()){
 			if(outputHeader){
 				for(int i = 1; i <= numCol; i++){
-					System.out.print(rsmd.getColumnName(i) + "\t");
+					System.out.printf(rsmd.getColumnName(i) + "\t\t");
 				}
 				System.out.println();
 				outputHeader = false;
 			}
 			for (int i=1; i<=numCol; ++i)
-				System.out.print (rs.getString (i) + "\t");
+				System.out.printf(rs.getString (i) + "\t\t");
 			System.out.println ();
 			++rowCount;
 		}//end while
@@ -459,13 +460,14 @@ public class PizzaStore {
 		System.out.println("1. Search by type");
 		System.out.println("2. Search by price");
 		System.out.println("3. Search all items");
-		
+
 		String select = "SELECT * FROM Items";
 		String condition = "";
 		String query = "";
 		switch(readChoice()) {
 			case 1: condition = viewByTypes(esql); break;
 			case 2: condition = viewByCost(esql); break;
+			case 3: break;
 			default: return; 
 		}
 
@@ -475,7 +477,15 @@ public class PizzaStore {
 				query = select + " " + condition;
 				if(choice == 1) query += " ORDER BY price DESC";	
 				else if(choice ==  2) query += " ORDER BY price ASC";	
-				esql.executeQueryAndPrintResult(query);
+				System.out.println(query);
+				List<List<String>> results = esql.executeQueryAndReturnResult(query);
+				for(List<String> result : results) {
+					System.out.println(String.format("Name: \t\t\t%s", result.get(0)));
+					System.out.println(String.format("Ingredients: \t\t%s", result.get(1)));
+					System.out.println(String.format("Type: \t\t\t%s", result.get(2)));
+					System.out.println(String.format("Cost: \t\t\t%s", result.get(3)));
+					System.out.println(String.format("Description: \t\t%s\n", result.get(4)));
+				}
 			} catch (Exception e) {
 				System.err.println(e.getMessage());	
 			}
@@ -497,8 +507,8 @@ public class PizzaStore {
 		String condition = "";
 		switch(readChoice()) {
 			case 1: condition = "entree"; break;
-			case 2: condition = "side"; break;
-			default: condition = "drink"; break;
+			case 2: condition = "sides"; break;
+			default: condition = "drinks"; break;
 		}
 
 		return String.format("WHERE typeOfItem = '%s'", condition);
@@ -539,6 +549,67 @@ public class PizzaStore {
 
 		if(query.equals("UPDATE")){
 
+			try {
+				String name;
+				String check;
+				String update = "";
+				String attribute = "";
+				String value = "";
+				while(true) {
+
+					name = input("item name ('q' to quit)", "not null");
+					if(name.equals("q")) return;
+					check = String.format("SELECT * FROM Items WHERE itemName = '%s'", name);
+					int count = esql.executeQuery(check);
+					if(count > 0) break;
+					System.out.println("Item name doesn't exist.");
+				}
+
+				while(true) {
+
+					update = "UPDATE Items";
+					List<List<String>> result = esql.executeQueryAndReturnResult(String.format("SELECT * FROM Items WHERE itemName = '%s'", name));
+					List<String> item = result.get(0);
+					System.out.println(String.format("Name: %s", item.get(0))); 
+					System.out.println(String.format("Ingredients: %s", item.get(1))); 
+					System.out.println(String.format("Type: %s", item.get(2))); 
+					System.out.println(String.format("Price: %s", item.get(3))); 
+					System.out.println(String.format("Description: %s\n", item.get(4))); 
+
+
+					System.out.println("1. Edit Ingredients"); 
+					System.out.println("2. Edit Type"); 
+					System.out.println("3. Edit Price"); 
+					System.out.println("4. Edit Description"); 
+					System.out.println("5. Exit"); 
+
+					switch(readChoice()) {
+						case 1: attribute = "ingredients"; break;
+						case 2: attribute = "typeOfItem"; break;
+						case 3: attribute = "price"; break;
+						case 4: attribute = "description"; break;
+						default: return; 
+					}
+					if(attribute.equals("itemName")) {
+						value = input("new item name", "not null");
+						update += String.format(" SET %s = '%s' WHERE itemName = '%s'", attribute, value, name);
+						name = value;
+					}
+					else if(attribute.equals("price")) {
+						value = input("new price:", "numeric");
+						update += String.format(" SET %s = '%s' WHERE itemName = '%s'", attribute, value, name);
+					}
+					else { 
+						value = input(String.format("new %s:", attribute), "not null");
+						update += String.format(" SET %s = '%s' WHERE itemName = '%s'", attribute, value, name);
+					} 
+					System.out.println(update);
+					esql.executeUpdate(update);
+				}
+
+			} catch (Exception e) {
+				System.err.println(e.getMessage());
+			}
 		}
 		else if (query.equals("DELETE")) {
 			try {
