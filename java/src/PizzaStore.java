@@ -459,33 +459,19 @@ public class PizzaStore {
 		System.out.println("1. Search by type");
 		System.out.println("2. Search by price");
 		System.out.println("3. Search all items");
-
+		
+		String select = "SELECT * FROM Items";
+		String condition = "";
+		String query = "";
 		switch(readChoice()) {
-			case 1: viewByTypes(esql); break;
+			case 1: condition = viewByTypes(esql); break;
 			default: return; 
-		}
-
-	}
-
-	public static void viewByTypes(PizzaStore esql) {
-
-		System.out.println("1. Pizza");
-		System.out.println("2. Sides");
-		System.out.println("3. Drinks");
-
-		String filter = "";
-
-		switch(readChoice()) {
-			case 1: filter = "Pizza"; break;
-			case 2: filter = "Side"; break;
-			case 3: filter = "Drink"; break; 
 		}
 
 		int choice = 3;
 		while(choice <= 3) {
-			String query;
 			try {
-				query = String.format("SELECT * FROM Items WHERE typeOfItem = '%s'", filter);
+				query = select + " " + condition;
 				if(choice == 1) query += " ORDER BY price DESC";	
 				else if(choice ==  2) query += " ORDER BY price ASC";	
 				esql.executeQueryAndPrintResult(query);
@@ -499,6 +485,26 @@ public class PizzaStore {
 			System.out.println("4. Exit");
 			choice = readChoice();
 		}
+
+	}
+
+	public static String viewByTypes(PizzaStore esql) {
+		System.out.println("1. Pizza");
+		System.out.println("2. Sides");
+		System.out.println("3. Drinks");
+
+		String condition = "";
+		switch(readChoice()) {
+			case 1: condition = "Pizza"; break;
+			case 2: condition = "Side"; break;
+			default: condition = "Drink"; break;
+		}
+
+		return String.format("WHERE typeOfItem = '%s'", condition);
+	}
+	public static String viewByCost(PizzaStore esql) {
+		String cost = input("minimum cost", "numeric");	
+		return "WHERE typeOfItem = 'Pizza'";
 	}
 	public static void placeOrder(PizzaStore esql) {}
 	public static void viewAllOrders(PizzaStore esql) {}
