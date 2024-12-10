@@ -296,7 +296,7 @@ public class PizzaStore {
 							case 7: viewOrderInfo(esql); break;
 							case 8: viewStores(esql); break;
 							case 9: updateOrderStatus(esql); break;
-							case 10: updateMenu(esql); break;
+							case 10: updateMenu(esql, authorisedUser); break;
 							case 11: authorisedUser = updateUser(esql, authorisedUser); break;
 
 
@@ -454,14 +454,123 @@ public class PizzaStore {
 			default: System.out.println("Unrecognizable choice!"); break;
 		}
 	}
-	public static void viewMenu(PizzaStore esql) {}
+	public static void viewMenu(PizzaStore esql) {
+
+		System.out.println("1. Search by type");
+		System.out.println("2. Search by price");
+		System.out.println("3. Search all items");
+
+		switch(readChoice()) {
+			case 1: viewByTypes(esql); break;
+			default: return; 
+		}
+
+	}
+
+	public static void viewByTypes(PizzaStore esql) {
+
+		System.out.println("1. Pizza");
+		System.out.println("2. Sides");
+		System.out.println("3. Drinks");
+
+		String filter = "";
+
+		switch(readChoice()) {
+			case 1: filter = "Pizza"; break;
+			case 2: filter = "Side"; break;
+			case 3: filter = "Drink"; break; 
+		}
+
+		int choice = 3;
+		while(choice <= 3) {
+			String query;
+			try {
+				query = String.format("SELECT * FROM Items WHERE typeOfItem = '%s'", filter);
+				if(choice == 1) query += " ORDER BY price DESC";	
+				else if(choice ==  2) query += " ORDER BY price ASC";	
+				esql.executeQueryAndPrintResult(query);
+			} catch (Exception e) {
+				System.err.println(e.getMessage());	
+			}
+
+			System.out.println("1. View by highest to lowest");
+			System.out.println("2. View by lowest to highest");
+			System.out.println("3. View unsorted");
+			System.out.println("4. Exit");
+			choice = readChoice();
+		}
+	}
 	public static void placeOrder(PizzaStore esql) {}
 	public static void viewAllOrders(PizzaStore esql) {}
 	public static void viewRecentOrders(PizzaStore esql) {}
 	public static void viewOrderInfo(PizzaStore esql) {}
 	public static void viewStores(PizzaStore esql) {}
 	public static void updateOrderStatus(PizzaStore esql) {}
-	public static void updateMenu(PizzaStore esql) {}
+	public static void updateMenu(PizzaStore esql, String authorisedUser) {
+		String[] roles = {"Manager"};	
+		String query = "";
+		boolean loop = true;
+		if(!authorise(esql, authorisedUser, roles)) {
+			System.out.println("You do not have permission to view this");
+			return;
+		}	
+
+
+		System.out.println("1. Update Item"); 
+		System.out.println("2. Remove Item"); 
+		System.out.println("3. Add Item"); 
+		System.out.println("4. Return Home"); 
+
+		switch(readChoice()) {
+			case 1: query = "UPDATE"; break;
+			case 2: query = "DELETE"; break;
+			case 3: query = "INSERT"; break;
+			case 4: return; 
+			default: System.out.println("Unrecognizable choice!"); break;
+		}
+
+
+		if(query.equals("UPDATE")){
+
+		}
+		else if (query.equals("DELETE")) {
+			try {
+
+				String name;
+				System.out.print("Enter item name: ");
+				name = in.readLine();
+				query = String.format("DELETE FROM Items WHERE itemName = '%s'", name);	
+				esql.executeUpdate(query);
+			} catch (Exception e) {
+				System.err.println(e.getMessage());
+			}
+		}
+		else {
+
+			try {
+				String name;
+				String ingredients;
+				String type;
+				String price;
+				String description;
+
+				name = input("item name", "not null"); 
+				ingredients = input("ingredients", "not null"); 
+				type = input("item type", "not null"); 
+				price = input("price", "numeric"); 
+				description = input("description", "na"); 
+
+				query = String.format("INSERT INTO Items(itemName, ingredients, typeOfItem, price, description) VALUES('%s', '%s', '%s', %s, '%s')", name, ingredients, type, price, description);
+
+				esql.executeUpdate(query); 
+			} catch (Exception e) {
+				System.err.println(e.getMessage());
+			}
+
+		}
+
+	}
+
 	public static String updateUser(PizzaStore esql, String authorisedUser) {
 		String[] roles = {"Manager"};
 		String user = authorisedUser;
@@ -550,6 +659,49 @@ public class PizzaStore {
 			System.err.println(e.getMessage());
 		}
 		return false;
+	}
+
+	public static String input(String title, String type) {
+
+		if(type.equals("numeric")) {
+			while(true) {
+				try {
+					System.out.print(String.format("Enter %s: ", title));
+					String text = in.readLine();
+					if(text.matches("^\\d+(\\.\\d{1,2})?$")) {
+						return text;
+					}
+					System.out.println("Invalid Input. Try again.");
+				} catch (Exception e) {
+					System.err.println(e.getMessage());
+				}
+			}
+		} 
+		else if(type.equals("not null")) {
+			while(true) {
+				try {
+					System.out.print(String.format("Enter %s: ", title));
+					String text = in.readLine();
+					if(!text.isEmpty()) {
+						return text;
+					}
+					System.out.println("Invalid Input");
+				} catch (Exception e) {
+					System.err.println(e.getMessage());
+				}
+			}
+		}
+		else {
+			while(true) {
+				try {
+					System.out.print(String.format("Enter %s: ", title));
+					String text = in.readLine();
+					return text;
+				} catch (Exception e) {
+					System.err.println(e.getMessage());
+				}
+			}
+		}
 	}
 
 }//end PizzaStore
