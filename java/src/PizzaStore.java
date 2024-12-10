@@ -480,8 +480,11 @@ public class PizzaStore {
 				System.out.println(query);
 				List<List<String>> results = esql.executeQueryAndReturnResult(query);
 				for(List<String> result : results) {
-					System.out.println(String.format("Name: %s\t Ingredients: %s\t Type: %s\t Price: %s\t", result.get(0), result.get(1), result.get(2), result.get(3)));
-					System.out.println(String.format("%s\n", result.get(4)));
+					System.out.println(String.format("Name: \t\t\t%s", result.get(0)));
+					System.out.println(String.format("Ingredients: \t\t%s", result.get(1)));
+					System.out.println(String.format("Type: \t\t\t%s", result.get(2)));
+					System.out.println(String.format("Cost: \t\t\t%s", result.get(3)));
+					System.out.println(String.format("Description: \t\t%s\n", result.get(4)));
 				}
 			} catch (Exception e) {
 				System.err.println(e.getMessage());	
