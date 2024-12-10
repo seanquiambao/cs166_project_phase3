@@ -478,7 +478,11 @@ public class PizzaStore {
 				if(choice == 1) query += " ORDER BY price DESC";	
 				else if(choice ==  2) query += " ORDER BY price ASC";	
 				System.out.println(query);
-				esql.executeQueryAndPrintResult(query);
+				List<List<String>> results = esql.executeQueryAndReturnResult(query);
+				for(List<String> result : results) {
+					System.out.println(String.format("Name: %s\t Ingredients: %s\t Type: %s\t Price: %s\t", result.get(0), result.get(1), result.get(2), result.get(3)));
+					System.out.println(String.format("%s\n", result.get(4)));
+				}
 			} catch (Exception e) {
 				System.err.println(e.getMessage());	
 			}
