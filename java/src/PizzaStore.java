@@ -517,12 +517,144 @@ public class PizzaStore {
 		String cost = input("the maximum cost (price under...)", "numeric");	
 		return String.format("WHERE price BETWEEN 0 AND %s", cost); 
 	}
-	public static void placeOrder(PizzaStore esql) {}
-	public static void viewAllOrders(PizzaStore esql) {}
-	public static void viewRecentOrders(PizzaStore esql) {}
-	public static void viewOrderInfo(PizzaStore esql) {}
-	public static void viewStores(PizzaStore esql) {}
-	public static void updateOrderStatus(PizzaStore esql) {}
+	public static void placeOrder(PizzaStore esql) {
+		Scanner readInput = new Scanner(system.in);
+
+        
+		viewStores(esql);
+		System.out.print("Enter the store id of the store you would like to place an order at: ");
+		int storeID = readInput.nextInt();
+		readInput.nextLine();
+
+		String getItemsQuery = "SELECT * FROM Items";
+		List<List<String>> storeItems = esql.executeQueryAndReturnResult(getItemsQuery);
+		System.out.println("Menu:");
+        for (List<String> item : menu) {
+            System.out.printf("Item: %s, Price: $%s, Description: %s\n",
+                              item.get(0), item.get(3), item.get(4));
+        }
+
+		List<String> userOrder = new ArrayList<>();
+        List<Integer> orderQuantities = new ArrayList<>();
+        boolean keepAdding = true;
+
+		while (keepAdding) {
+            System.out.print("Enter the item that you want to add to your order: ");
+            String itemName = readInput.nextLine();
+
+            System.out.print("Enter the quantity that you want of this item: ");
+            int quantity = readInput.nextInt();
+            readInput.nextLine();
+
+            userOrder.add(itemName);
+            userQuantities.add(quantity);
+
+            System.out.print("Do you want to order more items? (yes/no): ");
+            String userResponse = readInput.nextLine();
+            keepGoing = userResponse.equals("yes");
+        }
+
+		double orderPrice = 0.0;
+		for (int iter = 0; iter < userOrder.size(); iter++) {
+            String getPriceQuery = String.format("SELECT price FROM Items WHERE itemName = '%s'", userOrder.get(iter));
+            List<List<String>> priceList = esql.executeQueryAndReturnResult(getPriceQuery);
+
+            if (!priceResult.isEmpty()) {
+              double price = Double.parseDouble(priceResult.get(0).get(0));
+              orderPrice += price * quantities.get(iter);
+            }
+        }
+
+		String placeOrderQuery = String.format("INSERT INTO FoodOrder (login, storeID, totalPrice, orderTimestamp, orderStatus) VALUES ('%s', %d, %.2f, CURRENT_TIMESTAMP, 'incomplete') RETURNING orderID",
+                              authorisedUser, storeID, totalPrice);
+        List<List<String>> placeOrder = esql.executeQueryAndReturnResult(placeOrderQuery);
+        int orderID = Integer.parseInt(orderResult.get(0).get(0));
+
+		for (int iter = 0; iter < userOrder.size(); iter++) {
+            String insertOrderQuery = String.format("INSERT INTO ItemsInOrder (orderID, itemName, quantity) VALUES (%d, '%s', %d)",
+                                  orderID, orderItems.get(iter), quantities.get(iter));
+            esql.executeUpdate(insertOrderQuery);
+        }
+
+		System.out.printf("Your order has been placed successfully! Order ID: %d, Total Price: $%.2f\n", orderID, orderPrice);
+	}
+	public static void viewAllOrders(PizzaStore esql) {
+		String getUsersOrdersQuery = String.format("SELECT * FROM FoodOrder WHERE login = '%s'", authorisedUser);
+		List<List<String>> currUsersOrders = esql.executeQueryAndReturnResult(getUsersOrdersQuery);
+
+		if (currUsersOrders.isEmpty()) {
+            System.out.println("You have no order history.");
+            return;
+        }
+
+		System.out.println("These are all of the orders you have ever made: ");
+        for (List<String> order : orders) {
+            System.out.printf("Order ID: %s, Store ID: %s, Total Price: $%s, Timestamp: %s, Status: %s\n",
+                              order.get(0), order.get(2), order.get(3), order.get(4), order.get(5));
+        }
+	}
+	public static void viewRecentOrders(PizzaStore esql) {
+		String getUsersOrdersQuery = String.format(
+            "SELECT * FROM FoodOrder WHERE login = '%s' ORDER BY orderTimestamp DESC LIMIT 5",
+            authorisedUser
+        );
+        List<List<String>> currUsersOrders = esql.executeQueryAndReturnResult(query);
+
+        if (currUsersOrders.isEmpty()) {
+            System.out.println("You have no order history.");
+            return;
+        }
+
+        System.out.println("Your 5 Most Recent Orders:");
+        for (List<String> order : orders) {
+            System.out.printf("Order ID: %s, Store ID: %s, Total Price: $%s, Timestamp: %s, Status: %s\n",
+                              order.get(0), order.get(2), order.get(3), order.get(4), order.get(5));
+        }
+	}
+	public static void viewOrderInfo(PizzaStore esql) {
+		Scanner readInput = new Scanner(system.in);
+		System.out.print("Enter the Order ID of the order you want to view: ");
+		int orderID = scanner.nextInt();
+
+        String viewOrderQuery;
+        if (role.equalsIgnoreCase("manager") || role.equalsIgnoreCase("driver")) {
+            viewOrderQuery = String.format("SELECT * FROM FoodOrder WHERE orderID = %d", orderID);
+        } else {
+            viewOrderQuery = String.format("SELECT * FROM FoodOrder WHERE orderID = %d AND login = '%s'", orderID, authorisedUser);
+        }
+
+        List<List<String>> userOrders = esql.executeQueryAndReturnResult(viewOrderQuery);
+
+        if (userOrders.isEmpty()) {
+            System.out.println("No order found with the given ID or you do not have permission to view it.");
+            return;
+        }
+
+        List<String> order = userOrders.get(0);
+        System.out.printf("Order ID: %s\nOrder Timestamp: %s\nTotal Price: $%s\nOrder Status: %s\n",
+                          order.get(0), order.get(4), order.get(3), order.get(5));
+
+        viewOrderQuery = String.format("SELECT itemName, quantity FROM ItemsInOrder WHERE orderID = %d", orderID);
+        List<List<String>> items = esql.executeQueryAndReturnResult(viewOrderQuery);
+
+        System.out.println("Items in this Order:");
+        for (List<String> item : items) {
+            System.out.printf("- %s (Quantity: %s)\n", item.get(0), item.get(1));
+        }
+	}
+	public static void viewStores(PizzaStore esql) {
+		System.out.println("These are the open stores that you can place an order at: ");
+		Scanner readInput = new Scanner(system.in);
+		String getStoresQuery = "SELECT * FROM Store WHERE isOpen = 'yes'";
+		List<List<String>> availableStores = esql.executeQueryAndReturnResult(getStoresQuery);
+		for (List<String> store : stores) {
+            System.out.printf("Store ID: %s, Address: %s, City: %s, State: %s, Review Score: %s\n",
+                              store.get(0), store.get(1), store.get(2), store.get(3), store.get(5));
+        }
+	}
+	public static void updateOrderStatus(PizzaStore esql) {
+		
+	}
 	public static void updateMenu(PizzaStore esql, String authorisedUser) {
 		String[] roles = {"manager"};	
 		String query = "";
