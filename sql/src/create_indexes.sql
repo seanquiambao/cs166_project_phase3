@@ -9,7 +9,7 @@ ON Users
 USING BTREE
 (login);
 
-CREATE INDEX user_role_index;
+CREATE INDEX user_role_index
 ON Users
 USING BTREE
 (role);
@@ -19,12 +19,12 @@ ON Items
 USING BTREE
 (typeOfItem);
 
-CREATE INDEX item_name_index;
+CREATE INDEX item_name_index
 ON Items 
 USING BTREE
 (itemName);
 
-CREATE INDEX item_price_index;
+CREATE INDEX item_price_index
 ON Items 
 USING BTREE
 (price);

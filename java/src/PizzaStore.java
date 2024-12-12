@@ -579,6 +579,7 @@ public class PizzaStore {
 					authorisedUser, storeID, orderPrice);
 			placeOrder = esql.executeQueryAndReturnResult(placeOrderQuery);
 		} catch (Exception e) {
+			System.out.println("HAII");
 			System.err.println(e.getMessage());
 		}
 		int orderID = Integer.parseInt(placeOrder.get(0).get(0));
