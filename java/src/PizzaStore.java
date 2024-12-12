@@ -653,7 +653,41 @@ public class PizzaStore {
         }
 	}
 	public static void updateOrderStatus(PizzaStore esql) {
-		
+		Scanner readInput = new Scanner(System.in);
+
+        if (!role.equalsIgnoreCase("manager") && !role.equalsIgnoreCase("driver")) {
+            System.out.println("You do not have the necessary permissions to update order statuses.");
+            return;
+        }
+
+        System.out.print("Enter the Order ID to update status: ");
+        int orderID = scanner.nextInt();
+        scanner.nextLine();
+
+        String getOrderQuery = String.format("SELECT * FROM FoodOrder WHERE orderID = %d", orderID);
+        List<List<String>> allOrders = esql.executeQueryAndReturnResult(getOrderQuery);
+
+        if (allOrders.isEmpty()) {
+            System.out.println("No order found with the given ID.");
+            return;
+        }
+
+        List<String> order = orders.get(0);
+        System.out.printf("Current Status: %s\n", order.get(5));
+
+        System.out.println("Available statuses: [incomplete, in progress, complete]");
+        System.out.print("Enter the new status: ");
+        String newStatus = scanner.nextLine().trim().toLowerCase();
+
+        if (!newStatus.equals("incomplete") && !newStatus.equals("in progress") && !newStatus.equals("complete")) {
+            System.out.println("Invalid status. Please enter one of the valid statuses.");
+            return;
+        }
+
+        updateOrderStatusQuery = String.format("UPDATE FoodOrder SET orderStatus = '%s' WHERE orderID = %d", newStatus, orderID);
+        esql.executeUpdate(updateOrderStatusQuery);
+
+        System.out.println("Order status updated successfully.");
 	}
 	public static void updateMenu(PizzaStore esql, String authorisedUser) {
 		String[] roles = {"manager"};	
