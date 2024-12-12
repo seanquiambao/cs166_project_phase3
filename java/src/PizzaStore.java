@@ -461,7 +461,7 @@ public class PizzaStore {
 		System.out.println("2. Search by price");
 		System.out.println("3. Search all items");
 
-		String select = "SELECT * FROM Items";
+		String select = "SELECT * FROM Items i";
 		String condition = "";
 		String query = "";
 		switch(readChoice()) {
@@ -506,12 +506,12 @@ public class PizzaStore {
 
 		String condition = "";
 		switch(readChoice()) {
-			case 1: condition = "entree"; break;
-			case 2: condition = "sides"; break;
-			default: condition = "drinks"; break;
+			case 1: condition = " entree"; break;
+			case 2: condition = " sides"; break;
+			default: condition = " drinks"; break;
 		}
 
-		return String.format("WHERE typeOfItem = '%s'", condition);
+		return String.format("WHERE i.typeOfItem = '%s'", condition);
 	}
 	public static String viewByCost(PizzaStore esql) {
 		String cost = input("the maximum cost (price under...)", "numeric");	
